@@ -1,30 +1,128 @@
-import scrapy
+# news_venv\Scripts\activate
 
+import scrapy
 
 class NewsSpider(scrapy.Spider):
     name = "news"
-    allowed_domains = ["www.gmanetwork.com"]
-    start_urls = ["https://www.gmanetwork.com/news/"]
+    allowed_domains = [
+        "www.philstar.com",
+        "mb.com.ph",
+        "www.manilatimes.net",
+        "www.inquirer.net"
+    ]
+    start_urls = [
+        "https://www.philstar.com/",
+        "https://mb.com.ph/top-articles/most-viewed",  # Most Viewed Articles
+        "https://mb.com.ph/top-articles/most-shared",  # Most Shared Articles
+        "https://www.manilatimes.net/news",
+        "https://newsinfo.inquirer.net/"
+    ]
 
     def parse(self, response):
-        pass
+        if "philstar.com" in response.url:
+            yield from self.parse_philstar(response)
+        elif "mb.com.ph" in response.url:
+            yield from self.parse_mb(response)
+        elif "manilatimes.net" in response.url:
+            yield from self.parse_manilatimes(response)
+        elif "inquirer.net" in response.url:
+            yield from self.parse_inquirer(response)
 
-'''
-https://www.philstar.com/
-https://mb.com.ph/
-https://www.gmanetwork.com/news/
-https://www.abs-cbn.com/news
-https://www.manilatimes.net/
-https://www.inquirer.net/
-'''
+    # Parsing logic for Philstar
+    def parse_philstar(self, response):
+        yield {
+
+        }
+
+    # Parsing logic for Manila Bulletin
+    def parse_mb(self, response):
+        if "most-viewed" in response.url:
+            yield from self.parse_mb_most_viewed(response)
+        elif "most-shared" in response.url:
+            yield from self.parse_mb_most_shared(response)
+
+    # Parsing logic for Manila Bulletin - Most Viewed Articles
+    def parse_mb_most_viewed(self, response):
+        # articles = response.css('div.most-viewed-article')  
+        for article in articles:
+            yield {
+            }
+
+    # Parsing logic for Manila Bulletin - Most Shared Articles
+    def parse_mb_most_shared(self, response):
+        # articles = response.css('div.most-shared-article')  # Adjust selector based on the actual structure
+        for article in articles:
+            yield {
+                # 'headline': article.css('h2::text').get(),
+                # 'source': 'Manila Bulletin - Most Shared',
+                # 'url': response.urljoin(article.css('a::attr(href)').get())
+            }
+
+    # Parsing logic for Manila Times
+    def parse_manilatimes(self, response):
+        yield {
+            # 'headline': response.css('h1.entry-title::text').get(),
+            # 'source': 'Manila Times',
+            # 'url': response.url
+        }
+
+    # Parsing logic for Inquirer
+    def parse_inquirer(self, response):
+        yield {
+            # 'headline': response.css('h1.post-title::text').get(),
+            # 'source': 'Inquirer',
+            # 'url': response.url
+        }
+
+
+
+
+# PHILSTAR
+# Link of Article:
+# response.css('.news_column.latest .ribbon_image a::attr(href)').getall()
+# Headers of Articles: 
+# response.css('.article__title h1::text').get()
+# Author of Articles:
+# response.css('.article__credits-author-pub::text').get()
+# Date of Published Article:
+# response.css('.article__date-published::text').get()
+
+# Manila Times 
+# Link of Article:
+# response.css('.item-row.item-row-2.flex-row a::attr(href)').getall()
+# Headers of Articles: 
+# response.css('.col-1 h1::text').get()
+# Author of Articles:
+# response.css('.article-author-name.roboto-a ::text').get()
+# Date of Published Article:
+# response.css('.article-publish-time.roboto-a ::text').get()
+
+# Manila Bulletin 
+# Link of Article:
+# response.css('.mb-font-article-title a::attr(href)').getall()
+# Headers of Articles: 
+# response.css('h1::text').get()
+# Author of Articles:
+# response.css('.mb-font-author-name.overflow-nowrap a span::text').get()
+# Date of Published Article:
+# response.css('.mb-font-article-date::text').get()
+
+# Inquirer.net 
+# Link of Article:
+# response.css('#ncg-info h1 a::attr(href)').getall()
+# Headers of Articles: 
+# response.css('h1::text').get()
+# Author of Articles:
+# response.css('#art_author a::text').get()
+# Date of Published Article:
+# response.css('#art_plat ::text').getall() # Clean this Part 
 
 
 '''
 Scrapping HTML 
 
-ABSCBN 
-
-GMA News
+ABSCBN [Protected]
+GMA News 
 Inquirer 
 Manila Bulletin 
 Manila Times 
@@ -47,9 +145,16 @@ i should focus on things
             [Nation News, and Politics]
     * Trending Article or Most Read Articles
 
+# Even having a User Agent and Ignoring the Robot.txt it freaking stop me from Javscript
+_________________________________________________________________
+
+
 2. Second Problem is Checking if wether it is a javascript or html
 What is the Other way of Checking a Website and not Downloading it ?
     fetch('https://www.gmanetwork.com/news/topstories/') # javscript Website 
+
+    # Yep It's definitely Javascript Website Man 
+
 
 '''
 
@@ -74,19 +179,50 @@ Out[4]: 'Marc Jayson Cayabyab'
 In [5]: response.css('.article__date-published::text').get()
 Out[5]: 'March 21, 2025 | 12:00am'
 
+# PHILSTAR
+# Link of Article:
+response.css('.news_column.latest .ribbon_image a::attr(href)').getall()
+Headers of Articles: 
+response.css('.article__title h1::text').get()
+Author of Articles:
+response.css('.article__credits-author-pub::text').get()
+Date of Published Article:
+response.css('.article__date-published::text').get()
 '''
 
 '''
 fetch('https://www.manilatimes.net/news')
 response.css('.item-row.item-row-2.flex-row a::attr(href)').getall()
 
-fetch() # the Article Itself 
-    # Big Problem here , maybe this website have anti Web Scrapping Measure of the Links 
-    # a Broken link for the Bot 
-    # I'm going to Jump from this man 
+response.css('.col-1 h1::text').get()
+2025-03-22 04:31:04 [asyncio] DEBUG: Using selector: SelectSelector
+In [3]: response.css('.col-1 h1::text').get()
+Out[3]: '\n                ICC credibility could come under scrutiny\n            '
+
+2025-03-22 04:31:24 [asyncio] DEBUG: Using selector: SelectSelector
+In [4]: response.css('.article-author-name.roboto-a ::text').get()
+Out[4]: '\n                                By Franco Jose C. Baroña\n                            '
+
+2025-03-22 04:32:12 [asyncio] DEBUG: Using selector: SelectSelector
+In [5]: response.css('.article-publish-time.roboto-a ::text').get()
+Out[5]: '\n                                March 22, 2025\n                            '
+
+# Manila Times 
+Link of Article:
+response.css('.item-row.item-row-2.flex-row a::attr(href)').getall()
+Headers of Articles: 
+response.css('.col-1 h1::text').get()
+Author of Articles:
+response.css('.article-author-name.roboto-a ::text').get()
+Date of Published Article:
+response.css('.article-publish-time.roboto-a ::text').get()
+
 '''
 
 '''
+
+Manila Bulletin [DONE]
+
 https://mb.com.ph/top-articles/most-viewed
 response.css('.mb-font-article-title a::attr(href)').getall()
 
@@ -102,6 +238,16 @@ Out[8]: 'John Legaspi'
 
 In [9]: response.css('.mb-font-article-date::text').get()
 Out[9]: 'Mar 9, 2025 06:08 AM'
+
+
+Link of Article:
+response.css('.mb-font-article-title a::attr(href)').getall()
+Headers of Articles: 
+response.css('h1::text').get()
+Author of Articles:
+response.css('.mb-font-author-name.overflow-nowrap a span::text').get()
+Date of Published Article:
+response.css('.mb-font-article-date::text').get()
 _________________________________________________
 
 The reason why response.css('.mb-font-author-name.overflow-nowrap a span::text').get() works is because it accurately targets the specific HTML structure of the webpage you're scraping. Let me break it down for you:
@@ -174,6 +320,49 @@ all_matching_elements = response.css('.mb-font-author-name.overflow-nowrap a spa
 print("All Matching Elements:", all_matching_elements)
 If you have further questions or need help with other parts of your scraping project, feel free to ask! 😊
 
-New chat
 
+'''
+
+'''
+# GMA Network 
+
+In [1]: fetch('https://www.gmanetwork.com/news/archives/topstories/')
+2025-03-22 03:52:43 [scrapy.core.engine] INFO: Spider opened
+2025-03-22 03:52:43 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://www.gmanetwork.com/robots.txt> (referer: None)
+2025-03-22 03:52:43 [scrapy.downloadermiddlewares.robotstxt] DEBUG: Forbidden by robots.txt: <GET https://www.gmanetwork.com/news/archives/topstories/>
+'''
+
+'''
+Inquirer.net
+In [1]: fetch('https://newsinfo.inquirer.net/')
+2025-03-22 04:05:02 [scrapy.core.engine] INFO: Spider opened
+2025-03-22 04:05:02 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://newsinfo.inquirer.net/robots.txt> (referer: None)
+2025-03-22 04:05:02 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://newsinfo.inquirer.net/> (referer: None)
+
+
+2025-03-22 04:05:56 [asyncio] DEBUG: Using selector: SelectSelector
+In [3]: response.css('#ncg-info h1 a::attr(href)').getall()
+
+# Inquirer.net 
+Link of Article:
+response.css('#ncg-info h1 a::attr(href)').getall()
+Headers of Articles: 
+response.css('h1::text').get()
+Author of Articles:
+response.css('#art_author a::text').get()
+Date of Published Article:
+response.css('#art_plat ::text').getall() # Clean this Part 
+
+Collect all the Possible Node in this HTML instead of .get()
+
+<div id="art_plat"> 
+    <a href="https://newsinfo.inquirer.net/source/inquirer-net" rel="tag">INQUIRER.net</a> / 10:23 PM March 21, 2025
+</div>
+
+'''
+
+
+
+'''
+Focusing on What Currently MAtter man 
 '''

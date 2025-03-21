@@ -1,0 +1,168 @@
+News Scrapping Project 
+
+
+Website that i can Scrape 
+1. Philstar
+2. Manila Bulletin
+3. Manila Times
+4. Inquirer.net
+
+
+Website that i can't scrape
+1. ABSCBN 
+2. GMA News
+3. 
+4.  
+
+
+What is IPython and Scrapy Shell
+IPython is an interactive command-line shell for Python that provides enhanced features compared to the standard Python REPL (Read-Eval-Print Loop).
+
+What is Scrapy Shell 
+The Scrapy shell is an interactive environment provided by Scrapy that allows you to test and debug your scraping code. It is particularly useful for experimenting with selectors, inspecting responses, and testing XPath or CSS expressions before incorporating them into your spider.
+
+I'm going to try this part 
+$ install scrapy-fake-useragent
+
+_____________________________________________________________________________________
+
+Understanding this Documentation Part 'scrapy-fake-useragent' also the Header Part 
+
+Documentation for this: 
+https://github.com/alecxe/scrapy-fake-useragent
+
+Key Feature:
+	Automatically rotates User-Agent strings for each request.
+	Supports multiple providers for generating User-Agent strings.
+	Allows customization of fallback User-Agent strings.
+	# I need to Understand the Fall back 
+	# How did they Manage to Do this Fake User-Agent
+	# Also Why are they doing this even in the Website 
+	# Also How can Server Detect Bot From the User Agent 
+	# What with the Gray Area of Things 
+
+Question: 
+	1. In each Request does it different from User Agent? 
+	2. What is the Pros and Cons of Different User Agent per Request?
+	3. If There are Different User Agent in each request How the Cookies Work on that?
+	like how it will maintain sessions if there are Different User Agent per request?
+	
+Bots often have missing or suspicious headers.
+# Next Question is How to Fix this parts 
+
+_____________________________________________________________________________________
+
+Understanding the Robot.txt
+
+Robot.txt can disallow the crawling or just going website from a path in URL
+403 Forbidden response. 
+
+If you Bypass the Robot and there are no Robot Protection in there like  (e.g., IP blocking or CAPTCHA), the request succeeds, and you can scrape the content.
+
+Even if you ignore robots.txt, some websites use headers to detect and block bots. For example:
+
+	* If you don’t include a valid User-Agent header, the server might reject the request.
+	* If the User-Agent is missing or looks like a bot (e.g., Scrapy/VERSION), the server might block the request.
+	* Server-Side Bot Detection: Some websites use advanced techniques (e.g., IP rate limiting, CAPTCHA, or JavaScript challenges) to block bots.
+	
+
+_____________________________________________________________________________________
+
+Understanding of the Cookies in a Website
+
+
+
+1. What Are Cookies?
+Cookies are small pieces of data stored in the user’s browser. They are used by websites to:
+	* Track user sessions (e.g., keep users logged in).
+	* Store user preferences.
+	* Monitor user behavior (e.g., for analytics or advertising).
+
+* When you scrape a website, you may need to handle cookies to mimic a real user’s behavior.
+
+Scraping Without Handling Cookies
+If you scrape a website without handling cookies:
+
+	* Session-Based Content: If the website uses cookies to manage sessions (e.g., to keep users logged in), you might not be able to access certain pages or data.
+	* Bot Detection: Some websites use cookies to detect bots. If you don’t handle cookies, the website might block your requests.
+	* Inconsistent Data: Without cookies, you might receive incomplete or inconsistent data (e.g., a logged-out version of the page).
+
+Best Practices for Handling Cookies
+Enable Cookies: Set COOKIES_ENABLED = True in settings.py.
+
+	* Rotate Cookies: If scraping multiple sessions, use different cookies for each session.
+	* Respect Privacy: Avoid scraping sensitive or personal data stored in cookies.
+	* Monitor for Blocks: If the website blocks your requests, try rotating cookies or using proxies.
+
+
+_____________________________________________________________________________________
+
+Scrapy Can Handle Cookies Automatically or I can just manually Handle the cookies 
+
+How Scrapy Handle the cookies 
+- Scrapy handles cookies automatically, it manages cookies for you without requiring any additional code
+
+	* Cookie Storage: Scrapy stores cookies received from the server in memory.
+	* Cookie Sending: Scrapy automatically sends the appropriate cookies with subsequent requests to the same domain.
+	* Session Management: Scrapy maintains a session for each domain, so cookies are shared across requests to the same domain.
+	* Good for Simple Cases: Works well for most scraping tasks where cookies are used for basic session management.
+
+Cons:
+	* Limited Control: You can’t customize how cookies are handled for specific requests.
+
+	* No Cross-Domain Cookies: Cookies are not shared across different domains.
+
+	* Hard to Debug: If something goes wrong, it’s harder to debug since the process is abstracted.
+
+
+Manually Handling Cookies
+- When you handle cookies manually, you take full control over how cookies are stored, sent, and managed. This is useful for more complex scraping tasks.
+
+
+	* Set Cookies Explicitly: You can pass cookies directly in the cookies parameter of a request.
+	* Use Cookie Jars: Scrapy allows you to use multiple cookie jars to manage different sets of cookies.
+	* Custom Logic: You can implement custom logic for handling cookies (e.g., rotating cookies, handling authentication).
+
+Pros:
+	* Full Control: You can customize how cookies are handled for each request.
+	* Cross-Domain Cookies: You can manually share cookies across different domains.
+	* Complex Scenarios: Ideal for scraping tasks that require authentication, session management, or handling multiple users.
+	* Easier Debugging: Since you’re managing cookies explicitly, it’s easier to debug issues.
+
+
+Scenario			Automatic Handling		Manual Handling
+Simple Scraping:		✅ Best choice			❌ Overkill
+Authentication Required		❌ Limited functionality	✅ Necessary
+Cross-Domain Cookies		❌ Not supported		✅ Required
+Custom Cookie Logic		❌ Not possible			✅ Necessary
+Debugging Cookie Issues		❌ Hard to debug		✅ Easier to debug
+
+
+Use manual cookie handling if:
+	* You need to log in or handle authentication.
+	* You’re scraping multiple domains and need to share cookies.
+	* You want to implement custom logic for handling cookies.
+Use automatic cookie handling if:
+	* You’re scraping a simple website.
+	* You don’t need to manage sessions or authentication.
+	* You want to keep your code simple.
+Question
+	1. What does it mean to manage Multiple Domains
+	2. What does it mean to share Cookies
+	3. How i can determine if it is a simple website in term of cookies 
+
+1. Manage Multiple Domains
+It means handling requests and cookies for different websites (e.g., example.com and anotherexample.com) in the same spider. Scrapy’s automatic cookie handling doesn’t share cookies across domains, so you’d need to manage this manually.
+
+2. Share Cookies
+It means using the same cookies across multiple requests or domains. For example, if you log in to example.com, you might need to use the same session cookies for subsequent requests to api.example.com.
+
+3. Determine if a Website is Simple (in Terms of Cookies)
+A website is simple if:
+
+It doesn’t require login or authentication.
+It doesn’t use cookies for session tracking or personalization.
+You can access all content without handling cookies manually.
+Check the website’s behavior:
+If you can access all pages without logging in and cookies aren’t required, it’s simple.
+If you see Set-Cookie headers in the server response, the website uses cookies, and you may need to handle them.
