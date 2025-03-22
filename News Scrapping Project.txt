@@ -166,3 +166,10 @@ You can access all content without handling cookies manually.
 Check the website’s behavior:
 If you can access all pages without logging in and cookies aren’t required, it’s simple.
 If you see Set-Cookie headers in the server response, the website uses cookies, and you may need to handle them.
+
+
+___________________________________________________________________________________________________________________
+
+Understanding the "yield" and "meta"
+
+

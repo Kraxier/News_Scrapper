@@ -30,9 +30,30 @@ class NewsSpider(scrapy.Spider):
 
     # Parsing logic for Philstar
     def parse_philstar(self, response):
+        article_links = response.css('.news_column.latest .ribbon_image a::attr(href)').getall()
+        for link in article_links:
+            yield response.follow(link, 
+                                    callback=self.parse_article_philstar,
+                                    meta={'article_link': link}
+                                  )
+    
+    def parse_article_philstar(self, response):
+        article_link = response.meta['article_link']
+        title = response.css('.article__title h1::text').get()
+        author = response.css('.article__credits-author-pub::text').get()
+        date_published = response.css('.article__date-published::text').get()
         yield {
-
+        'Title': title,
+        'Author': author,
+        'Date_of_Published': date_published,
+        'Article_Link': article_link,
         }
+        
+# Lack of Understanding in yield, yield.response.follow
+# Lack of Understanding meta and how i can use it 
+
+
+  
 
     # Parsing logic for Manila Bulletin
     def parse_mb(self, response):
