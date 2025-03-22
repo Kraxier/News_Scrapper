@@ -1,9 +1,15 @@
 # news_venv\Scripts\activate
+# scrapy crawl news_spider -o march_23_2025_news.json
+# i should crete that automatically get the current date and save it to the current csv files 
+
+'''
+I needed to Improve like What Site that currently it extracted like some sort of string thing 
+'''
 
 import scrapy
 
 class NewsSpider(scrapy.Spider):
-    name = "news"
+    name = "news_spider"
     allowed_domains = [
         "www.philstar.com",
         "mb.com.ph",
@@ -12,10 +18,10 @@ class NewsSpider(scrapy.Spider):
     ]
     start_urls = [
         "https://www.philstar.com/",
-        "https://mb.com.ph/top-articles/most-viewed",  # Most Viewed Articles
-        "https://mb.com.ph/top-articles/most-shared",  # Most Shared Articles
+        "https://mb.com.ph/top-articles/most-viewed",  
+        "https://mb.com.ph/top-articles/most-shared",  
         "https://www.manilatimes.net/news",
-        "https://newsinfo.inquirer.net/"
+        "https://newsinfo.inquirer.net",
     ]
 
     def parse(self, response):
@@ -28,7 +34,7 @@ class NewsSpider(scrapy.Spider):
         elif "inquirer.net" in response.url:
             yield from self.parse_inquirer(response)
 
-    # Parsing logic for Philstar
+
     def parse_philstar(self, response):
         article_links = response.css('.news_column.latest .ribbon_image a::attr(href)').getall()
         for link in article_links:
@@ -40,63 +46,94 @@ class NewsSpider(scrapy.Spider):
     def parse_article_philstar(self, response):
         article_link = response.meta['article_link']
         title = response.css('.article__title h1::text').get()
-        author = response.css('.article__credits-author-pub::text').get()
+        author = response.css('.article__credits-author-pub a::text').get()
         date_published = response.css('.article__date-published::text').get()
         yield {
+        'Source': 'Philstar',
         'Title': title,
         'Author': author,
         'Date_of_Published': date_published,
         'Article_Link': article_link,
         }
         
-# Lack of Understanding in yield, yield.response.follow
-# Lack of Understanding meta and how i can use it 
+    def parse_manilatimes(self, response):
+        article_links = response.css('.item-row.item-row-2.flex-row a::attr(href)').getall()
+        for link in article_links:
+            yield response.follow(link, 
+                                    callback=self.parse_article_manilatimes,
+                                    meta={'article_link': link}
+                                  )
 
-
-  
+    def parse_article_manilatimes(self, response):
+        article_link = response.meta['article_link']
+        title = response.css('.col-1 h1::text').get()
+        author = response.css('.article-author-name.roboto-a ::text').get()
+        date_published = response.css('.article-publish-time.roboto-a ::text').get()
+        yield {
+        'Source': 'Manila Times',
+        'Title': title,
+        'Author': author,
+        'Date_of_Published': date_published,
+        'Article_Link': article_link,
+        }
+    def parse_inquirer(self, response):
+        article_links = response.css('#ncg-info h1 a::attr(href)').getall()
+        for link in article_links:
+            yield response.follow(link, 
+                                    callback=self.parse_article_inquirer,
+                                    meta={'article_link': link}
+                                  )
+    def parse_article_inquirer(self, response):
+        article_link = response.meta['article_link']
+        title = response.css('h1::text').get()
+        author = response.css('#art_author a::text').get()
+        date_published = response.css('#art_plat ::text').getall()
+        yield {
+        'Source': 'Incquirer',    
+        'Title': title,
+        'Author': author,
+        'Date_of_Published': date_published,
+        'Article_Link': article_link,
+        }
 
     # Parsing logic for Manila Bulletin
     def parse_mb(self, response):
         if "most-viewed" in response.url:
-            yield from self.parse_mb_most_viewed(response)
+            yield from self.parse_mb_site(response)
         elif "most-shared" in response.url:
-            yield from self.parse_mb_most_shared(response)
+            yield from self.parse_mb_site(response)
 
     # Parsing logic for Manila Bulletin - Most Viewed Articles
-    def parse_mb_most_viewed(self, response):
-        # articles = response.css('div.most-viewed-article')  
-        for article in articles:
-            yield {
-            }
-
-    # Parsing logic for Manila Bulletin - Most Shared Articles
-    def parse_mb_most_shared(self, response):
-        # articles = response.css('div.most-shared-article')  # Adjust selector based on the actual structure
-        for article in articles:
-            yield {
-                # 'headline': article.css('h2::text').get(),
-                # 'source': 'Manila Bulletin - Most Shared',
-                # 'url': response.urljoin(article.css('a::attr(href)').get())
-            }
-
-    # Parsing logic for Manila Times
-    def parse_manilatimes(self, response):
+    def parse_mb_site(self, response):
+        article_links = response.css('.mb-font-article-title a::attr(href)').getall()
+        for link in article_links:
+            yield response.follow(link, 
+                                    callback=self.parse_article_mb,
+                                    meta={'article_link': link}
+                                  )
+    def parse_article_mb(self, response):
+        article_link = response.meta['article_link']
+        title = response.css('h1::text').get()
+        author = response.css('.mb-font-author-name.overflow-nowrap a span::text').get()
+        date_published = response.css('.mb-font-article-date::text').get()
         yield {
-            # 'headline': response.css('h1.entry-title::text').get(),
-            # 'source': 'Manila Times',
-            # 'url': response.url
+        'Source': 'Manila Bulletin',    
+        'Title': title,
+        'Author': author,
+        'Date_of_Published': date_published,
+        'Article_Link': article_link,
         }
+            
 
-    # Parsing logic for Inquirer
-    def parse_inquirer(self, response):
-        yield {
-            # 'headline': response.css('h1.post-title::text').get(),
-            # 'source': 'Inquirer',
-            # 'url': response.url
-        }
-
-
-
+# Manila Bulletin 
+# Link of Article:
+# response.css('.mb-font-article-title a::attr(href)').getall()
+# Headers of Articles: 
+# response.css('h1::text').get()
+# Author of Articles:
+# response.css('.mb-font-author-name.overflow-nowrap a span::text').get()
+# Date of Published Article:
+# response.css('.mb-font-article-date::text').get()
 
 # PHILSTAR
 # Link of Article:

@@ -172,4 +172,20 @@ ________________________________________________________________________________
 
 Understanding the "yield" and "meta"
 
-
+1. What is yield?
+	- Python: a keyword to create generators #i had no idea what is that
+	- Scrapy: is used to return the data item or request from a spider method
+	[What is method? ,what does it mean by item?]
+2. What is Items 
+	- Extracting a data ( Title,Author) from a webpage you yield it as a dictionary or an item object 
+3. What is "response.follow" in yield response.follow(link, callback=self.parse_article)
+	- following the link to the page 
+4. What is Asynchronous Processing?
+	- yield allow scrapy to handle multi request and items concurrently, making the spider efficient and fast.
+5. What is Meta? 
+	- is a dictionary that is attached to Request
+	- it is used to pass additional data between requestion and their corresponding callback function # I had no idea what this mean 
+	- Passing Data between Request like url, ids, or flags # no idea here 
+	- Used to carry context or extra information. # maybe the parse carrying to another function 
+	- Sends data to the next callback function. # This is what i understand 
+	- Based on my Understanding if you have a data in that been collected to the first fuction you can carry it to another Function by Doing the Meta Thing 
