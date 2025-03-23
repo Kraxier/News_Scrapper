@@ -189,3 +189,9 @@ Understanding the "yield" and "meta"
 	- Used to carry context or extra information. # maybe the parse carrying to another function 
 	- Sends data to the next callback function. # This is what i understand 
 	- Based on my Understanding if you have a data in that been collected to the first fuction you can carry it to another Function by Doing the Meta Thing 
+
+- response.follow # Attach meta to Requests:
+- response.meta # Access meta in Callbacks: Access meta in Callbacks:
+
+
+

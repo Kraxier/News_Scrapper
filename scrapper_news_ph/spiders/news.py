@@ -1,10 +1,19 @@
 # news_venv\Scripts\activate
-# scrapy crawl news_spider -o march_23_2025_news.json
+# scrapy crawl news_spider -o march_24_2025_news.json
 # i should crete that automatically get the current date and save it to the current csv files 
+# scrapy crawl news_spider -o inquirer_news.json
 
 '''
-I needed to Improve like What Site that currently it extracted like some sort of string thing 
+Finishing up the Project of Scrapping Multiple News Site 
+
+    1. Data Cleaning and Formatting 
+    2. Create a Function where it Automatically get the Current Date of the Local System and create a Name for it 
+    3. Store this in Mysql Server of Mine 
+    4. Error Handling in Scrapy ( Although it said that it can take care of itself in terms of Error handling )
+
+
 '''
+
 
 import scrapy
 
@@ -14,14 +23,20 @@ class NewsSpider(scrapy.Spider):
         "www.philstar.com",
         "mb.com.ph",
         "www.manilatimes.net",
-        "www.inquirer.net"
+        # "www.inquirer.net",
+        # "*.inquirer.net"
+        # "newsinfo.inquirer.net",
+        # "globalnation.inquirer.net",
+        # "cebudailynews.inquirer.net",
+        # "lifestyle.inquirer.net",
+        # "pep.inquirer.net"
+
     ]
     start_urls = [
         "https://www.philstar.com/",
         "https://mb.com.ph/top-articles/most-viewed",  
         "https://mb.com.ph/top-articles/most-shared",  
         "https://www.manilatimes.net/news",
-        "https://newsinfo.inquirer.net",
     ]
 
     def parse(self, response):
@@ -31,8 +46,8 @@ class NewsSpider(scrapy.Spider):
             yield from self.parse_mb(response)
         elif "manilatimes.net" in response.url:
             yield from self.parse_manilatimes(response)
-        elif "inquirer.net" in response.url:
-            yield from self.parse_inquirer(response)
+        # elif "inquirer.net" in response.url:
+        #     yield from self.parse_inquirer(response)
 
 
     def parse_philstar(self, response):
@@ -76,25 +91,26 @@ class NewsSpider(scrapy.Spider):
         'Date_of_Published': date_published,
         'Article_Link': article_link,
         }
-    def parse_inquirer(self, response):
-        article_links = response.css('#ncg-info h1 a::attr(href)').getall()
-        for link in article_links:
-            yield response.follow(link, 
-                                    callback=self.parse_article_inquirer,
-                                    meta={'article_link': link}
-                                  )
-    def parse_article_inquirer(self, response):
-        article_link = response.meta['article_link']
-        title = response.css('h1::text').get()
-        author = response.css('#art_author a::text').get()
-        date_published = response.css('#art_plat ::text').getall()
-        yield {
-        'Source': 'Incquirer',    
-        'Title': title,
-        'Author': author,
-        'Date_of_Published': date_published,
-        'Article_Link': article_link,
-        }
+    # def parse_inquirer(self, response):
+    #     article_links = response.css('#ncg-info h1 a::attr(href)').getall()
+    #     print(f"Found {len(article_links)} article links")
+    #     for link in article_links:
+    #         yield response.follow(link, 
+    #                                 callback=self.parse_article_inquirer,
+    #                                 meta={'article_link': link}
+    #                               )
+    # def parse_article_inquirer(self, response):
+    #     article_link = response.meta['article_link']
+    #     title = response.css('h1::text').get()
+    #     author = response.css('#art_author a::text').get()
+    #     date_published = response.css('#art_plat ::text').getall()
+    #     yield {
+    #     'Source': 'Incquirer',    
+    #     'Title': title,
+    #     'Author': author,
+    #     'Date_of_Published': date_published,
+    #     'Article_Link': article_link,
+    #     }
 
     # Parsing logic for Manila Bulletin
     def parse_mb(self, response):
