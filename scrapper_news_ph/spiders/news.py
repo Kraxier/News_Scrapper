@@ -1,5 +1,5 @@
 # news_venv\Scripts\activate
-# scrapy crawl news_spider -o march_24_2025_news.json
+# scrapy crawl news_spider -o march_25_2025_news.json
 # i should crete that automatically get the current date and save it to the current csv files 
 # scrapy crawl news_spider -o inquirer_news.json
 
@@ -14,7 +14,119 @@ Finishing up the Project of Scrapping Multiple News Site
 
 '''
 
+# DRY ( Don't Repeat Yourself ) Principles 
+# Your SITE_CONFIG approach is industry-standard for multi-site scrapers. It’s used by:
 
+# News aggregators (e.g., Google News).
+
+# E-commerce price trackers.
+
+# SEO tools (e.g., Ahrefs/SEMrush).
+
+# For your project, it’s an excellent choice—just add more sites to the config as needed!
+# import scrapy
+# from urllib.parse import urljoin
+
+# class NewsSpider(scrapy.Spider):
+#     name = "news_spider"
+#     allowed_domains = [
+#         "www.philstar.com",
+#         "mb.com.ph",
+#         "www.manilatimes.net",
+#         # "www.inquirer.net",
+#     ]
+    
+#     start_urls = [
+#         "https://www.philstar.com/",
+#         "https://mb.com.ph/top-articles/most-viewed",
+#         "https://mb.com.ph/top-articles/most-shared",
+#         "https://www.manilatimes.net/news",
+#     ]
+
+#     # Configuration for each site's selectors and parsing rules
+#     SITE_CONFIG = {
+#         'philstar.com': {
+#             'article_links': '.news_column.latest .ribbon_image a::attr(href)',
+#             'article_parser': {
+#                 'title': '.article__title h1::text',
+#                 'author': '.article__credits-author-pub a::text',
+#                 'date': '.article__date-published::text',
+#                 'source': 'Philstar'
+#             }
+#         },
+#         'manilatimes.net': {
+#             'article_links': '.item-row.item-row-2.flex-row a::attr(href)',
+#             'article_parser': {
+#                 'title': '.col-1 h1::text',
+#                 'author': '.article-author-name.roboto-a ::text',
+#                 'date': '.article-publish-time.roboto-a ::text',
+#                 'source': 'Manila Times'
+#             }
+#         },
+#         'mb.com.ph': {
+#             'article_links': '.mb-font-article-title a::attr(href)',
+#             'article_parser': {
+#                 'title': 'h1::text',
+#                 'author': '.mb-font-author-name.overflow-nowrap a span::text',
+#                 'date': '.mb-font-article-date::text',
+#                 'source': 'Manila Bulletin'
+#             },
+#             'special_pages': ['most-viewed', 'most-shared']
+#         },
+#         # 'inquirer.net': {
+#         #     'article_links': '#ncg-info h1 a::attr(href)',
+#         #     'article_parser': {
+#         #         'title': 'h1::text',
+#         #         'author': '#art_author a::text',
+#         #         'date': '#art_plat ::text',
+#         #         'source': 'Inquirer'
+#         #     }
+#         # }
+#     }
+
+#     def parse(self, response):
+#         """Main parse method that routes to appropriate handler"""
+#         domain = self._get_domain(response.url)
+#         if domain in self.SITE_CONFIG:
+#             yield from self._parse_article_list(response, domain)
+
+#     def _get_domain(self, url):
+#         """Extract the domain from URL"""
+#         for domain in self.SITE_CONFIG:
+#             if domain in url:
+#                 return domain
+#         return None
+
+#     def _parse_article_list(self, response, domain):
+#         """Parse list of articles for a specific domain"""
+#         config = self.SITE_CONFIG[domain]
+#         article_links = response.css(config['article_links']).getall()
+        
+#         for link in article_links:
+#             yield response.follow(
+#                 link,
+#                 callback=self._parse_article,
+#                 meta={'domain': domain}
+#             )
+
+#     def _parse_article(self, response):
+#         """Parse individual article page"""
+#         domain = response.meta['domain']
+#         config = self.SITE_CONFIG[domain]['article_parser']
+        
+#         article_data = {
+#             'Source': config['source'],
+#             'Title': response.css(config['title']).get(),
+#             'Author': response.css(config['author']).get(),
+#             'Date_of_Published': response.css(config['date']).get(),
+#             'Article_Link': response.url
+#         }
+
+#         if article_data['Title']:  # Only yield items with titles
+#             yield article_data
+
+
+from scrapper_news_ph.items import ScrapperNewsPhItem
 import scrapy
 
 class NewsSpider(scrapy.Spider):
@@ -49,7 +161,6 @@ class NewsSpider(scrapy.Spider):
         # elif "inquirer.net" in response.url:
         #     yield from self.parse_inquirer(response)
 
-
     def parse_philstar(self, response):
         article_links = response.css('.news_column.latest .ribbon_image a::attr(href)').getall()
         for link in article_links:
@@ -57,20 +168,6 @@ class NewsSpider(scrapy.Spider):
                                     callback=self.parse_article_philstar,
                                     meta={'article_link': link}
                                   )
-    
-    def parse_article_philstar(self, response):
-        article_link = response.meta['article_link']
-        title = response.css('.article__title h1::text').get()
-        author = response.css('.article__credits-author-pub a::text').get()
-        date_published = response.css('.article__date-published::text').get()
-        yield {
-        'Source': 'Philstar',
-        'Title': title,
-        'Author': author,
-        'Date_of_Published': date_published,
-        'Article_Link': article_link,
-        }
-        
     def parse_manilatimes(self, response):
         article_links = response.css('.item-row.item-row-2.flex-row a::attr(href)').getall()
         for link in article_links:
@@ -78,19 +175,87 @@ class NewsSpider(scrapy.Spider):
                                     callback=self.parse_article_manilatimes,
                                     meta={'article_link': link}
                                   )
+    # Parsing logic for Manila Bulletin
+    def parse_mb(self, response):
+        if "most-viewed" in response.url:
+            yield from self.parse_mb_site(response)
+        elif "most-shared" in response.url:
+            yield from self.parse_mb_site(response)
+
+    # Parsing logic for Manila Bulletin - Most Viewed Articles
+    def parse_mb_site(self, response):
+        article_links = response.css('.mb-font-article-title a::attr(href)').getall()
+        for link in article_links:
+            yield response.follow(link, 
+                                    callback=self.parse_article_mb,
+                                    meta={'article_link': link}
+                                  )
+    def parse_article_philstar(self, response):
+        item = ScrapperNewsPhItem()
+        item['Source'] = 'Philstar'
+        item['Title'] = response.css('.article__title h1::text').get()
+        item['Author'] = response.css('.article__credits-author-pub a::text').get()
+        item['Date_of_Published'] = response.css('.article__date-published::text').get()
+        item['Article_Link'] = response.meta['article_link']
+        yield item
 
     def parse_article_manilatimes(self, response):
-        article_link = response.meta['article_link']
-        title = response.css('.col-1 h1::text').get()
-        author = response.css('.article-author-name.roboto-a ::text').get()
-        date_published = response.css('.article-publish-time.roboto-a ::text').get()
-        yield {
-        'Source': 'Manila Times',
-        'Title': title,
-        'Author': author,
-        'Date_of_Published': date_published,
-        'Article_Link': article_link,
-        }
+        item = ScrapperNewsPhItem()
+        item['Source'] = 'Manila Times'
+        item['Title'] = response.css('.col-1 h1::text').get()
+        item['Author'] = response.css('.article-author-name.roboto-a ::text').get()
+        item['Date_of_Published'] = response.css('.article-publish-time.roboto-a ::text').get()
+        item['Article_Link'] = response.meta['article_link']
+        yield item
+
+    def parse_article_mb(self, response):
+        item = ScrapperNewsPhItem()
+        item['Source'] = 'Manila Bulletin'
+        item['Title'] = response.css('h1::text').get()
+        item['Author'] = response.css('.mb-font-author-name.overflow-nowrap a span::text').get()
+        item['Date_of_Published'] = response.css('.mb-font-article-date::text').get()
+        item['Article_Link'] = response.meta['article_link']
+        yield item
+    # def parse_article_mb(self, response):
+    #     item = ScrapperNewsPhItem()
+    #     article_link = response.meta['article_link']
+    #     title = response.css('h1::text').get()
+    #     author = response.css('.mb-font-author-name.overflow-nowrap a span::text').get()
+    #     date_published = response.css('.mb-font-article-date::text').get()
+    #     yield {
+    #     'Source': 'Manila Bulletin',    
+    #     'Title': title,
+    #     'Author': author,
+    #     'Date_of_Published': date_published,
+    #     'Article_Link': article_link,
+    #     }
+
+    # def parse_article_manilatimes(self, response):
+    #     item = ScrapperNewsPhItem()
+    #     article_link = response.meta['article_link']
+    #     title = response.css('.col-1 h1::text').get()
+    #     author = response.css('.article-author-name.roboto-a ::text').get()
+    #     date_published = response.css('.article-publish-time.roboto-a ::text').get()
+    #     yield {
+    #     'Source': 'Manila Times',
+    #     'Title': title,
+    #     'Author': author,
+    #     'Date_of_Published': date_published,
+    #     'Article_Link': article_link,
+    #     }
+    # def parse_article_philstar(self, response):
+    #     item = ScrapperNewsPhItem()
+    #     article_link = response.meta['article_link']
+    #     title = response.css('.article__title h1::text').get()
+    #     author = response.css('.article__credits-author-pub a::text').get()
+    #     date_published = response.css('.article__date-published::text').get()
+    #     yield {
+    #     'Source': 'Philstar',
+    #     'Title': title,
+    #     'Author': author,
+    #     'Date_of_Published': date_published,
+    #     'Article_Link': article_link,
+    #     }
     # def parse_inquirer(self, response):
     #     article_links = response.css('#ncg-info h1 a::attr(href)').getall()
     #     print(f"Found {len(article_links)} article links")
@@ -111,34 +276,6 @@ class NewsSpider(scrapy.Spider):
     #     'Date_of_Published': date_published,
     #     'Article_Link': article_link,
     #     }
-
-    # Parsing logic for Manila Bulletin
-    def parse_mb(self, response):
-        if "most-viewed" in response.url:
-            yield from self.parse_mb_site(response)
-        elif "most-shared" in response.url:
-            yield from self.parse_mb_site(response)
-
-    # Parsing logic for Manila Bulletin - Most Viewed Articles
-    def parse_mb_site(self, response):
-        article_links = response.css('.mb-font-article-title a::attr(href)').getall()
-        for link in article_links:
-            yield response.follow(link, 
-                                    callback=self.parse_article_mb,
-                                    meta={'article_link': link}
-                                  )
-    def parse_article_mb(self, response):
-        article_link = response.meta['article_link']
-        title = response.css('h1::text').get()
-        author = response.css('.mb-font-author-name.overflow-nowrap a span::text').get()
-        date_published = response.css('.mb-font-article-date::text').get()
-        yield {
-        'Source': 'Manila Bulletin',    
-        'Title': title,
-        'Author': author,
-        'Date_of_Published': date_published,
-        'Article_Link': article_link,
-        }
             
 
 # Manila Bulletin 
