@@ -1,12 +1,13 @@
 # news_venv\Scripts\activate
 # scrapy crawl news_spider -o march_25_2025_news.json
+# scrapy crawl news_spider
 # i should crete that automatically get the current date and save it to the current csv files 
 # scrapy crawl news_spider -o inquirer_news.json
 
 '''
 Finishing up the Project of Scrapping Multiple News Site 
 
-    1. Data Cleaning and Formatting 
+    1. Data Cleaning and Formatting [ DONE ]
     2. Create a Function where it Automatically get the Current Date of the Local System and create a Name for it 
     3. Store this in Mysql Server of Mine 
     4. Error Handling in Scrapy ( Although it said that it can take care of itself in terms of Error handling )
@@ -128,6 +129,18 @@ Finishing up the Project of Scrapping Multiple News Site
 
 from scrapper_news_ph.items import ScrapperNewsPhItem
 import scrapy
+from datetime import date
+
+# current_date = date.today()
+# date_it_scrape = str(current_date) + ".txt"
+
+# How i can Debug this Stuff ?
+current_date = date.today().strftime("%Y-%m-%d") 
+json_file = f"{current_date}.json"
+csv_file = f"{current_date}.csv"
+
+# scrapy crawl news_spider --loglevel DEBUG # to Debug Properly 
+# 
 
 class NewsSpider(scrapy.Spider):
     name = "news_spider"
@@ -150,6 +163,13 @@ class NewsSpider(scrapy.Spider):
         "https://mb.com.ph/top-articles/most-shared",  
         "https://www.manilatimes.net/news",
     ]
+    
+    custom_settings = {
+        "FEEDS": {
+            json_file: {"format": "json"},
+            csv_file: {"format": "csv"},
+        }
+    }
 
     def parse(self, response):
         if "philstar.com" in response.url:
