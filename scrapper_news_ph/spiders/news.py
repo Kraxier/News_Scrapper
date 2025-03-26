@@ -8,9 +8,12 @@
 Finishing up the Project of Scrapping Multiple News Site 
 
     1. Data Cleaning and Formatting [ DONE ]
-    2. Create a Function where it Automatically get the Current Date of the Local System and create a Name for it 
+    2. Create a Function where it Automatically get the Current Date of the Local System and create a Name for it [ DONE ]
     3. Store this in Mysql Server of Mine 
     4. Error Handling in Scrapy ( Although it said that it can take care of itself in terms of Error handling )
+    
+    # Refixing things Using the Bookstoscrape Thing 
+    # Focusing itself from the Pipeline 
 
 
 '''
