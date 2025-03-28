@@ -50,7 +50,69 @@ class ScrapperNewsPhPipeline:
                 item[field] = item[field].strip()
 
         return item
-    
+
+# Before Importing i need to install the mysql connector thing 
+# activate the venv news_venv\Scripts\activate
+# pip install mysql-connector-python
+# 
+import mysql.connector
+
+# Setting u 
+class SaveToMySQLPipeline:
+    '''
+    def _init_(self) # What is this 
+    self.conn = mysql.connector.connect( # Something more like a connection
+            host = 'localhost', # name of the Laptop
+            user = 'root', # Name of the User  
+            password = '05242005#Kr_031225', # password of the Database
+            database = 'mydb' # Name of the Data Base 
+
+    '''
+    def __init__(self):
+        self.conn = mysql.connector.connect(
+            host = 'localhost',
+            user = 'root',
+            password = '05242005#Kr_031225',
+            database = 'mydb'
+        )
+        ## No Idea What this Mean is 
+        ## Create cursor, used to execute commands
+        self.cur = self.conn.cursor()
+        '''
+        Explanation : 
+            * self.cur = self.conn.cursor() creates a cursor object (self.cur) from a database connection (self.conn).
+            * A cursor lets you execute SQL queries (like SELECT, INSERT) and fetch results from MySQL.
+            * self.conn = Active database connection (from mysql.connector.connect()).
+            * self.cur = Tool to run SQL commands.
+            # Basically in the Sense of Run any SQL command. in the VSCODE 
+            # You can even run it in VS code the Mysql Part for Proper Fixing Things 
+
+
+        '''
+        ## Create books table if none exists
+
+        # Learning the Data Itself Man 
+
+        # self.cur.execute("""
+        # CREATE TABLE IF NOT EXISTS books(
+        #     id int NOT NULL auto_increment, 
+        #     url VARCHAR(255),
+        #     title text,
+        #     upc VARCHAR(255),
+        #     product_type VARCHAR(255),
+        #     price_excl_tax DECIMAL,
+        #     price_incl_tax DECIMAL,
+        #     tax DECIMAL,
+        #     price DECIMAL,
+        #     availability INTEGER,
+        #     num_reviews INTEGER,
+        #     stars INTEGER,
+        #     category VARCHAR(255),
+        #     description text,
+        #     PRIMARY KEY (id)
+        # )
+        # """)
+            
 
 # def __init__(self):
 #     self.seen_articles = set()  # Track duplicates
@@ -72,78 +134,6 @@ Thread-Safe	Scrapy pipelines are single-threaded per item
 
 
 '''
-
-Understanding the Code 
-    1. Why it did what it Did 
-    2. What things i should implement 
-    3. Learning Mysql Thing 
-
-class RelearnScrapyV2Pipeline:
-    def process_item(self, item, spider):
-
-
-        ## Strip all whitespaces from strings
-        adapter = ItemAdapter(item)
-        field_names = adapter.field_names()
-        for field_name in field_names:
-            if field_name != 'description':
-                value = adapter.get(field_name)
-                adapter[field_name] = value[0].strip()
-
-
-        ## Category & Product Type --> switch to lowercase
-        lowercase_keys = ['category', 'product_type']
-        for lowercase_key in lowercase_keys:
-            value = adapter.get(lowercase_key)
-            adapter[lowercase_key] = value.lower()
-
-
-
-        ## Price --> convert to float
-        price_keys = ['price', 'price_excl_tax', 'price_incl_tax', 'tax']
-        for price_key in price_keys:
-            value = adapter.get(price_key)
-            value = value.replace('£', '')
-            adapter[price_key] = float(value)
-
-
-        ## Availability --> extract number of books in stock
-        availability_string = adapter.get('availability')
-        split_string_array = availability_string.split('(')
-        if len(split_string_array) < 2:
-            adapter['availability'] = 0
-        else:
-            availability_array = split_string_array[1].split(' ')
-            adapter['availability'] = int(availability_array[0])
-
-
-
-        ## Reviews --> convert string to number
-        num_reviews_string = adapter.get('num_reviews')
-        adapter['num_reviews'] = int(num_reviews_string)
-
-
-        ## Stars --> convert text to number
-        stars_string = adapter.get('stars')
-        split_stars_array = stars_string.split(' ')
-        stars_text_value = split_stars_array[1].lower()
-        if stars_text_value == "zero":
-            adapter['stars'] = 0
-        elif stars_text_value == "one":
-            adapter['stars'] = 1
-        elif stars_text_value == "two":
-            adapter['stars'] = 2
-        elif stars_text_value == "three":
-            adapter['stars'] = 3
-        elif stars_text_value == "four":
-            adapter['stars'] = 4
-        elif stars_text_value == "five":
-            adapter['stars'] = 5
-
-
-        return item
-    
-# Pipeline you can do it diretcly to data base 
 
 import mysql.connector
 
