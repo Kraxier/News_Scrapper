@@ -12,22 +12,20 @@
 #     def process_item(self, item, spider):
 #         return item
 
-'''
-$ from scrapy.exceptions import DropItem
-Purpose: A special exception that tells Scrapy to silently discard an item (without crashing the spider).
+    # def __init__(self):
+    #     self.conn = mysql.connector.connect(
+    #         host='localhost',
+    #         user='root',
+    #         password=os.getenv('05242005#Kr_031225'),  
+    #         database='mydb'
+    #     )
 
-When to use: When you encounter:
-
-Invalid/missing data
-
-Duplicate items
-
-Low-quality content (e.g., empty fields)
-'''
-
+    #     self.cur = self.conn.cursor()
 
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
+import mysql.connector
+import os
 
 class ScrapperNewsPhPipeline:
     def __init__(self):
@@ -51,182 +49,50 @@ class ScrapperNewsPhPipeline:
 
         return item
 
-# Before Importing i need to install the mysql connector thing 
-# activate the venv news_venv\Scripts\activate
-# pip install mysql-connector-python
-# 
-import mysql.connector
-
-# Setting u 
 class SaveToMySQLPipeline:
-    '''
-    def _init_(self) # What is this 
-    self.conn = mysql.connector.connect( # Something more like a connection
-            host = 'localhost', # name of the Laptop
-            user = 'root', # Name of the User  
-            password = '05242005#Kr_031225', # password of the Database
-            database = 'mydb' # Name of the Data Base 
-
-    '''
-    def __init__(self):
+    def open_spider(self, spider):
+        """Connect to MySQL when the spider opens."""
         self.conn = mysql.connector.connect(
-            host = 'localhost',
-            user = 'root',
-            password = '05242005#Kr_031225',
-            database = 'mydb'
+            host="localhost",
+            user="root",
+            password=os.getenv("MYSQL_PASSWORD", "05242005#Kr_031225"),  # Get from env or fallback
+            database="mydb"
         )
-        ## No Idea What this Mean is 
-        ## Create cursor, used to execute commands
-        self.cur = self.conn.cursor()
-        '''
-        Explanation : 
-            * self.cur = self.conn.cursor() creates a cursor object (self.cur) from a database connection (self.conn).
-            * A cursor lets you execute SQL queries (like SELECT, INSERT) and fetch results from MySQL.
-            * self.conn = Active database connection (from mysql.connector.connect()).
-            * self.cur = Tool to run SQL commands.
-            # Basically in the Sense of Run any SQL command. in the VSCODE 
-            # You can even run it in VS code the Mysql Part for Proper Fixing Things 
+        self.cursor = self.conn.cursor()
 
-
-        '''
-        ## Create books table if none exists
-
-        # Learning the Data Itself Man 
-
-        # self.cur.execute("""
-        # CREATE TABLE IF NOT EXISTS books(
-        #     id int NOT NULL auto_increment, 
-        #     url VARCHAR(255),
-        #     title text,
-        #     upc VARCHAR(255),
-        #     product_type VARCHAR(255),
-        #     price_excl_tax DECIMAL,
-        #     price_incl_tax DECIMAL,
-        #     tax DECIMAL,
-        #     price DECIMAL,
-        #     availability INTEGER,
-        #     num_reviews INTEGER,
-        #     stars INTEGER,
-        #     category VARCHAR(255),
-        #     description text,
-        #     PRIMARY KEY (id)
-        # )
-        # """)
-            
-
-# def __init__(self):
-#     self.seen_articles = set()  # Track duplicates
-    '''
-Initialization:
-
-When the spider starts, __init__() creates an empty set() (optimized for fast lookups)
-    '''
-
-'''
-set()
-Key Properties
-
-Memory Efficiency	Sets use hashing for O(1) lookups (faster than lists)
-Persistence	Only lasts for current spider run (reset when spider restarts)
-Uniqueness Guarantee	Same article won't be processed twice in the same run
-Thread-Safe	Scrapy pipelines are single-threaded per item
-'''
-
-
-'''
-
-import mysql.connector
-
-class SaveToMySQLPipeline:
-
-    def __init__(self):
-        self.conn = mysql.connector.connect(
-            host = 'localhost',
-            user = 'root',
-            password = '05242005#Kr_031225', #add your password here if you have one set 
-            database = 'mydb'
-        )
-
-        ## Create cursor, used to execute commands
-        self.cur = self.conn.cursor()
-
-        ## Create books table if none exists
-        self.cur.execute("""
-        CREATE TABLE IF NOT EXISTS books(
-            id int NOT NULL auto_increment, 
-            url VARCHAR(255),
-            title text,
-            upc VARCHAR(255),
-            product_type VARCHAR(255),
-            price_excl_tax DECIMAL,
-            price_incl_tax DECIMAL,
-            tax DECIMAL,
-            price DECIMAL,
-            availability INTEGER,
-            num_reviews INTEGER,
-            stars INTEGER,
-            category VARCHAR(255),
-            description text,
-            PRIMARY KEY (id)
-        )
+        # Create the news table if it doesn't exist
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS news (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                Source VARCHAR(255),
+                Title VARCHAR(255),
+                Date_of_Published VARCHAR(255),
+                Article_Link TEXT
+            )
         """)
+        self.conn.commit()
 
     def process_item(self, item, spider):
-
-        ## Define insert statement
-        self.cur.execute(""" insert into books (
-            url, 
-            title, 
-            upc, 
-            product_type, 
-            price_excl_tax,
-            price_incl_tax,
-            tax,
-            price,
-            availability,
-            num_reviews,
-            stars,
-            category,
-            description
-            ) values (
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s
-                )""", (
-            item["url"],
-            item["title"],
-            item["upc"],
-            item["product_type"],
-            item["price_excl_tax"],
-            item["price_incl_tax"],
-            item["tax"],
-            item["price"],
-            item["availability"],
-            item["num_reviews"],
-            item["stars"],
-            item["category"],
-            str(item["description"][0])
+        """Insert items into MySQL."""
+        self.cursor.execute(""" 
+            INSERT INTO news (Source, Title, Date_of_Published, Article_Link)
+            VALUES (%s, %s, %s, %s)
+        """, (
+            item["Source"],
+            item["Title"],
+            item["Date_of_Published"],
+            item["Article_Link"]
         ))
+        self.conn.commit()  
+        print(f"✅ Saved to MySQL: {item['Title']}")
+        return item  
 
-        # ## Execute insert of data into database
-        self.conn.commit()
-        return item
-
-    
     def close_spider(self, spider):
-
-        ## Close cursor & connection to database 
-        self.cur.close()
+        """Close the database connection when the spider stops."""
+        self.cursor.close()
         self.conn.close()
 
-'''
+
+
+
+
